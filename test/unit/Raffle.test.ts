@@ -223,7 +223,7 @@ function getRandom(): number {
 
 
 
-                new Promise<void>(async (resolve, reject) => {
+                await new Promise<void>(async (resolve, reject) => {
                     console.log("enter Promise!")
                     // console.log(`${raffle}`)
                     // console.log(`${raffle.filters.WinnersPicked.name}`)
@@ -242,7 +242,7 @@ function getRandom(): number {
                     })
 
                     const tx = await raffle.performUpkeep("0x")
-                    const txReceipt = await tx.wait(1)
+                    const txReceipt = await tx.wait(3)
                     // console.log(`${txReceipt!.logs[1].topics[1]}`)
                     await vrfCoordinatorV2plusMock.fulfillRandomWords(
                         txReceipt!.logs[1].topics[1], // txReceipt.events[1].args.requestId

@@ -5,6 +5,7 @@ import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFCo
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 import {IVRFCoordinatorV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
+import "hardhat/console.sol";
 
 error Raffle__NotEnoughETHEntered();
 error Raffle__TransferFailed();
@@ -117,12 +118,13 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         bool isOpen = (RaffleState.OPEN == s_raffleState);
         bool timePassed = ((block.timestamp - s_lastTimeStamp) > i_interval);
         bool hasBalance = address(this).balance > 0;
-        upkeepNeeded = (isOpen && timePassed && s_full && hasBalance);
-        // upkeepNeeded = (isOpen && timePassed && hasBalance);
+        // upkeepNeeded = (isOpen && timePassed && s_full && hasBalance);
+        upkeepNeeded = (isOpen && timePassed && hasBalance);
     }
 
     function performUpkeep(bytes calldata /* performData */) external override {
         (bool upkeepNeeded, ) = checkUpkeep("");
+        console.log(upkeepNeeded);
         if (!upkeepNeeded) {
             revert Raffle__UpkeepNotNeeded(
                 address(this).balance,
@@ -145,6 +147,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
                 )
             })
         );
+        console.log(requestId);
         emit RequestedRaffleWinner(requestId);
     }
 
@@ -152,11 +155,13 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         uint256 /*requestId*/,
         uint256[] calldata randomWords
     ) internal override {
+        console.log(randomWords[0]);
         uint8 luckyNum = uint8(randomWords[0] % 100); // 0~99
+        console.log(luckyNum);
         (uint8 luckyNum1, uint8 luckyNum2, uint8 abs, SubResSymbol absSymbol) = splitLuckyNums(
             luckyNum
         );
-
+        emit WinnersPicked(luckyNum1, luckyNum2);
         (
             Participant[] memory winnersWhoGuessedTheLuckyNum,
             uint8 numOfJackpotWinners
@@ -237,7 +242,6 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         // if (!success) {
         //     revert Raffle__TransferFailed();
         // }
-        emit WinnersPicked(luckyNum1, luckyNum2);
     }
 
     // 对幸运数字进行分裂处理，返回2个幸运数字，25->52  33->66
@@ -512,12 +516,6 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
             }
         }
     }
-
-    // function filterTheRestOfWinners(
-    //     Participant[] firstPrizeWinners
-    // ) private returns (Participant[] otherWinners) {}
-
-    // function thirteenWinners(uint8 luckyNum) private returns (uint8[]) {}
 
     function getContractBalance() public view returns (uint256) {
         return address(this).balance;
