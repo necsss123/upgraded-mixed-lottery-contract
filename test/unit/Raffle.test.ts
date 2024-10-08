@@ -1,6 +1,6 @@
 import { assert, expect } from "chai"
 // @ts-ignore
-import { network, deployments, ethers }from "hardhat"
+import { network, deployments, ethers, getNamedAccounts }from "hardhat"
 import { developmentChains, networkConfig} from "../../helper-hardhat-config"
 import { Raffle, VRFCoordinatorV2_5Mock } from "../../typechain-types"
 import { BigNumberish } from "ethers"
@@ -197,6 +197,9 @@ function getRandom(): number {
             })
 
             it("picks winners, resets the raffle, and sends money",async function () {
+                // const {deployer} = await getNamedAccounts()
+                // console.log(`${await accounts[0].getAddress()}`)
+                // console.log(`${deployer}`)
                 const additionalEntrances = 51
                 const startingAccountIndex = 2
                 const randomsArr : Array<number> = []
@@ -215,20 +218,36 @@ function getRandom(): number {
                     const timestamp = 1728058963+10*index
                     await accountConnectedRaffle.enterRaffle(randomsArr[index],signsArr[index],absArr[index],timestamp,{ value: entranceFee }) 
                 }
+                // console.log(`${await raffle.getNumberOfPlayers()}`)
+                // console.log(`${await raffle.getContractBalance()}`)
 
-                // await new Promise<void>(async (resolve, reject) => {
-                //     // ["WinnersPicked(uint8,uint8)"]
-                //     raffle.once(raffle.filters.WinnersPicked, async (luckyNum1,luckyNum2) => {
-                //         console.log("WinnersPicked event fired!")
-                //         try{
-                //             console.log(`luckyNum1: ${luckyNum1}  luckyNum2: ${luckyNum2}`)
-                //             resolve()
-                //         }catch(e){
-                //             reject(e)
-                //         }
-                //     })
+
+
+                await new Promise<void>(async (resolve, reject) => {
+                    // ["WinnersPicked(uint8,uint8)"]  luckyNum1,luckyNum2
+                    raffle.once(raffle.filters.WinnersPicked, async () => {
+                        console.log("WinnersPicked event fired!")
+                        
+                        try{
+                            console.log(`luckyNum1:   luckyNum2: `)
+                            resolve()
+                            
+                        }catch(e){
+                            reject(e)
+                        }
+
+                        const tx = await raffle.performUpkeep("0x")
+                        const txReceipt = await tx.wait(3)
+                        console.log(`${txReceipt!.logs[1].topics[1]}`)
+                        await vrfCoordinatorV2plusMock.fulfillRandomWords(
+                            Number(txReceipt!.logs[1].topics[1]), // txReceipt.events[1].args.requestId
+                            raffle.target, // raffle.address
+                        )
+                    })
                     
-                // })
+                })
+
+
             })
         })
     }

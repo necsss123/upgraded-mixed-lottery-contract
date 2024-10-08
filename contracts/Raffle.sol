@@ -117,8 +117,8 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         bool isOpen = (RaffleState.OPEN == s_raffleState);
         bool timePassed = ((block.timestamp - s_lastTimeStamp) > i_interval);
         bool hasBalance = address(this).balance > 0;
-        // upkeepNeeded = (isOpen && timePassed && s_full && hasBalance);
-        upkeepNeeded = (isOpen && timePassed && hasBalance);
+        upkeepNeeded = (isOpen && timePassed && s_full && hasBalance);
+        // upkeepNeeded = (isOpen && timePassed && hasBalance);
     }
 
     function performUpkeep(bytes calldata /* performData */) external override {
@@ -172,56 +172,56 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         );
 
         // 通过绝对值进行筛选剩余非幸运数字中奖者
-        Participant[] memory nonLuckyNumWinners = getNonLuckyNumWinners(
-            theOtherParticipants,
-            theNumOfOtherWinners,
-            luckyNum1,
-            abs,
-            absSymbol
-        );
+        // Participant[] memory nonLuckyNumWinners = getNonLuckyNumWinners(
+        //     theOtherParticipants,
+        //     theNumOfOtherWinners,
+        //     luckyNum1,
+        //     abs,
+        //     absSymbol
+        // );
 
         // 获得完整的中奖者名单，13人---只有一个人猜中头奖的前提下，12人---无人猜中头奖
 
         // 将头奖资金打给头奖获得者 和 猜中luckyNum2的非头奖获得者
-        if (numOfJackpotWinners != 0) {
-            uint256 jackpotPrize = 48000000000000000000 / numOfJackpotWinners;
-            for (uint8 i = 0; i < winnersWhoGuessedTheLuckyNum.length; i++) {
-                if (i < numOfJackpotWinners) {
-                    (bool success, ) = winnersWhoGuessedTheLuckyNum[i].player.call{
-                        value: jackpotPrize
-                    }("");
-                    if (!success) {
-                        revert Raffle__TransferFailed();
-                    }
-                } else {
-                    (bool success, ) = winnersWhoGuessedTheLuckyNum[i].player.call{
-                        value: 9000000000000000000
-                    }("");
-                    if (!success) {
-                        revert Raffle__TransferFailed();
-                    }
-                }
-            }
+        // if (numOfJackpotWinners != 0) {
+        //     uint256 jackpotPrize = 48000000000000000000 / numOfJackpotWinners;
+        //     for (uint8 i = 0; i < winnersWhoGuessedTheLuckyNum.length; i++) {
+        //         if (i < numOfJackpotWinners) {
+        //             (bool success, ) = winnersWhoGuessedTheLuckyNum[i].player.call{
+        //                 value: jackpotPrize
+        //             }("");
+        //             if (!success) {
+        //                 revert Raffle__TransferFailed();
+        //             }
+        //         } else {
+        //             (bool success, ) = winnersWhoGuessedTheLuckyNum[i].player.call{
+        //                 value: 9000000000000000000
+        //             }("");
+        //             if (!success) {
+        //                 revert Raffle__TransferFailed();
+        //             }
+        //         }
+        //     }
 
-            // 将奖金打给非头奖获得者
-            for (uint8 i = 0; i < nonLuckyNumWinners.length; i++) {
-                (bool success, ) = nonLuckyNumWinners[i].player.call{value: 9000000000000000000}(
-                    ""
-                );
-                if (!success) {
-                    revert Raffle__TransferFailed();
-                }
-            }
-        } else {
-            for (uint8 i = 0; i < nonLuckyNumWinners.length; i++) {
-                (bool success, ) = nonLuckyNumWinners[i].player.call{value: 113000000000000000000}(
-                    ""
-                );
-                if (!success) {
-                    revert Raffle__TransferFailed();
-                }
-            }
-        }
+        //     // 将奖金打给非头奖获得者
+        //     for (uint8 i = 0; i < nonLuckyNumWinners.length; i++) {
+        //         (bool success, ) = nonLuckyNumWinners[i].player.call{value: 9000000000000000000}(
+        //             ""
+        //         );
+        //         if (!success) {
+        //             revert Raffle__TransferFailed();
+        //         }
+        //     }
+        // } else {
+        //     for (uint8 i = 0; i < nonLuckyNumWinners.length; i++) {
+        //         (bool success, ) = nonLuckyNumWinners[i].player.call{value: 13000000000000000000}(
+        //             ""
+        //         );
+        //         if (!success) {
+        //             revert Raffle__TransferFailed();
+        //         }
+        //     }
+        // }
 
         s_raffleState = RaffleState.OPEN;
         s_full = false;

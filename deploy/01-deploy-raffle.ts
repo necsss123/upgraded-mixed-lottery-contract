@@ -50,8 +50,10 @@ const deployRaffle: DeployFunction = async function (
         // https://ethereum.stackexchange.com/questions/152652/how-to-access-the-event-args-while-testing-using-ethers-v6
         subscriptionId = BigInt(transactionReceipt!.logs[0].topics[1])
 
-        console.log(`subscriptionId: ${subscriptionId}`)
+        // console.log(`subscriptionId: ${subscriptionId}`)
         await vrfCoordinatorV2plusMock.fundSubscription(subscriptionId, VRF_SUB_FUND_AMOUNT)
+        
+    
 
     }else{
         vrfCoordinatorV2plusAddress = networkConfig[network.config.chainId!]["vrfCoordinatorV2plus"]
@@ -80,7 +82,7 @@ const deployRaffle: DeployFunction = async function (
         gasPrice: feeData.gasPrice?.toString(),
     })
     // 本地测试需要，测试网上则注释掉
-    // await vrfCoordinatorV2plusMock!.addConsumer(subscriptionId!.toString(), raffle.address)
+    await vrfCoordinatorV2plusMock!.addConsumer(subscriptionId!.toString(), raffle.address)
 
     // deploying "Raffle" (tx: 0xaf0bd767a854beaa3f23fe8247a92abbbfb00ae5a8a66a36b48ae08432a02785)...: deployed at 0xCd55364e64f6567f6A3Da6e65E88c6e3b2cc5A6E with 2166903 gas
 

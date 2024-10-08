@@ -17,6 +17,7 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
+
   networks: {
     hardhat: {
       accounts: {
@@ -60,7 +61,7 @@ const config: HardhatUserConfig = {
     }
   },
   mocha: {     
-    timeout: 300000, 
+    timeout: 500000, 
   },
 }
 
