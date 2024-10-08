@@ -223,27 +223,31 @@ function getRandom(): number {
 
 
 
-                await new Promise<void>(async (resolve, reject) => {
+                new Promise<void>(async (resolve, reject) => {
+                    console.log("enter Promise!")
+                    // console.log(`${raffle}`)
+                    // console.log(`${raffle.filters.WinnersPicked.name}`)
                     // ["WinnersPicked(uint8,uint8)"]  luckyNum1,luckyNum2
-                    raffle.once(raffle.filters.WinnersPicked, async () => {
+                    raffle.once(raffle.filters.WinnersPicked, async (luckyNum1,luckyNum2) => {
                         console.log("WinnersPicked event fired!")
                         
                         try{
-                            console.log(`luckyNum1:   luckyNum2: `)
+                            console.log(`luckyNum1: ${luckyNum1}  luckyNum2: ${luckyNum2}`)
                             resolve()
                             
                         }catch(e){
                             reject(e)
                         }
 
-                        const tx = await raffle.performUpkeep("0x")
-                        const txReceipt = await tx.wait(3)
-                        console.log(`${txReceipt!.logs[1].topics[1]}`)
-                        await vrfCoordinatorV2plusMock.fulfillRandomWords(
-                            Number(txReceipt!.logs[1].topics[1]), // txReceipt.events[1].args.requestId
-                            raffle.target, // raffle.address
-                        )
                     })
+
+                    const tx = await raffle.performUpkeep("0x")
+                    const txReceipt = await tx.wait(1)
+                    // console.log(`${txReceipt!.logs[1].topics[1]}`)
+                    await vrfCoordinatorV2plusMock.fulfillRandomWords(
+                        txReceipt!.logs[1].topics[1], // txReceipt.events[1].args.requestId
+                        raffle.target, // raffle.address
+                    )
                     
                 })
 
